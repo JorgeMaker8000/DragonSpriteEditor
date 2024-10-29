@@ -1,8 +1,9 @@
 import Manager from '../manager'
+import Anime from 'animejs'
 
-const ZOOM_AMT = 0.2;
-const ZOOM_MIN = 0.1;
-const ZOOM_MAX = 2;
+const ZOOM_AMT = 2;
+const ZOOM_MIN = 1;
+const ZOOM_MAX = 32;
 
 export default class SpriteSheet extends PIXI.Container {
   constructor() {
@@ -27,6 +28,7 @@ export default class SpriteSheet extends PIXI.Container {
     this.spriteSlices = new PIXI.Graphics();
     this.addChild(this.spriteSlices);
     this.spriteIndexes = new PIXI.Sprite();
+    this.spriteIndexes.visible = false;
     this.addChild(this.spriteIndexes);
   }
   createAnchor() {
@@ -66,6 +68,7 @@ export default class SpriteSheet extends PIXI.Container {
     this.spriteHighlight.endFill();
     this.drawIndexes(cols, rows);
   }
+
   drawIndexes(cols, rows) {
     let canvas  = document.createElement('canvas');
     canvas.width = this.spriteSheet.width;
@@ -83,6 +86,7 @@ export default class SpriteSheet extends PIXI.Container {
     }
     this.spriteIndexes.texture = new PIXI.Texture.fromCanvas(canvas);
   }
+
   drawAnchor(cols, rows, anchorX, anchorY) {
     const {
       width, height
@@ -91,21 +95,63 @@ export default class SpriteSheet extends PIXI.Container {
     this.spriteAnchor.x = width / cols * anchorX;
     this.spriteAnchor.y = height / rows * anchorY;
   }
+
   setSpriteSheet(texture) {
+    texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
     this.spriteSheet.texture = texture;
   }
   zoomAt(x, y, deltaY) {
-    const localPos = this.toLocal(new PIXI.Point(x, y));
+    let newScale = new PIXI.Point();
     if (deltaY < 0) {
-      this.scale.x = Math.min(this.scale.x + ZOOM_AMT, ZOOM_MAX);
-      this.scale.y = Math.min(this.scale.y + ZOOM_AMT, ZOOM_MAX);
+      newScale.set(Math.min(this.scale.x * ZOOM_AMT, ZOOM_MAX), Math.min(this.scale.y * ZOOM_AMT, ZOOM_MAX));
     } else {
-      this.scale.x = Math.max(this.scale.x - ZOOM_AMT, ZOOM_MIN);
-      this.scale.y = Math.max(this.scale.y - ZOOM_AMT, ZOOM_MIN);
+      newScale.set(Math.max(this.scale.x / ZOOM_AMT, ZOOM_MIN), Math.max(this.scale.y / ZOOM_AMT, ZOOM_MIN));
     }
-    this.x = -(localPos.x * this.scale.x) + x;
-    this.y = -(localPos.y * this.scale.y) + y;
+    const localPos = this.toLocal(new PIXI.Point(x, y));
+    this.setFocus(-(localPos.x * newScale.x) + x, -(localPos.y * newScale.y) + y)
+    this.setZoom(newScale.x, newScale.y)
   }
+
+  setFocus(x = this.x, y = this.y, duration = 200) {
+    this.clearFocusing();
+    this.focusing = Anime({
+      targets: this,
+      easing: 'easeOutQuad',
+      duration: duration,
+      x: x,
+      y: y
+    });
+    this.focusing.finished.then(this.clearFocusing.bind(this));
+  }
+
+  clearFocusing() {
+    if (!this.focusing) return;
+    this.focusing.pause();
+    this.focusing = null;
+  }
+  
+  setZoom(x = this.scale.x, y = this.scale.y, duration = 200) {
+    this.clearZooming();
+    this.zooming = Anime({
+      targets: this.scale,
+      easing: 'easeOutQuad',
+      duration: duration,
+      x: x,
+      y: y
+    });
+    this.zooming.finished.then(this.clearZooming.bind(this));
+  }
+
+  clearZooming() {
+    if (!this.zooming) return;
+    this.zooming.pause();
+    this.zooming = null;
+  }
+
+  clearZoom() {
+    this.zoom = null;
+  }
+
   onClick(event) {
     if (!this._selectable) return;
     if (event.data.originalEvent.button !== 0) return;

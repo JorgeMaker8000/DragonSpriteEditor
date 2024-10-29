@@ -73,10 +73,14 @@ export default class ManagerPoses {
     this.arrMove(pose.pattern, oldIndex, newIndex);
   }
   getPatternClip(i, cb) {
-    const clip = Stage.getSlice(i);
-    if (!clip) return;
-    const data = this.renderer.extract.base64(clip);
-    cb(data);
+    const texture = Stage.getSlice(i);
+    if (!texture) return;
+    if (!texture.base64) {
+      const sprite = new PIXI.Sprite(texture);
+      texture.base64 = this.renderer.extract.base64(sprite);
+      sprite.destroy();
+    }
+    cb(texture.base64);
   }
   deletePattern(index) {
     const current = Store.configs[Store.currentConfig];

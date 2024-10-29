@@ -28,6 +28,6 @@ export default class PatternImage extends React.Component {
       nextState.src !== this.state.src;
   }
   render() {
-    return <img src={this.state.src} />
+    return <img src={this.state.src} style={{imageRendering: "pixelated"}}/>
   }
 }

@@ -38,6 +38,7 @@ export default class Canvas extends React.Component {
     }
   }
   updateDrag() {
+    if (Stage.spriteSheet.zooming) return;
     const { x, y } = screen.getCursorScreenPoint();
     const dx = this._mouseX - x;
     const dy = this._mouseY - y;

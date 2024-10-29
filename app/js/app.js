@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import PIXI from 'pixi.js'
+import Anime from 'animejs'
 
 import Manager from './manager'
 import Store from './manager/store'

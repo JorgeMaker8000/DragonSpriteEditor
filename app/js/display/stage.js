@@ -49,6 +49,7 @@ class Stage extends PIXI.Container {
     this.animatedSprite = new AnimatedSprite();
     this.animatedSprite.y = 20;
     this.animatedSprite.x = 360;
+    this.animatedSprite.scale.set(2.0);
     this.animatedSprite.alpha = 0;
     this.animatedSprite.addChild(this.previewText);
     this.addChild(this.animatedSprite);
@@ -183,10 +184,8 @@ class Stage extends PIXI.Container {
   }
   getSlice(i) {
     const frames = this.animatedSprite._frames;
-    if (!frames || !frames[i]) {
-      return null;
-    }
-    return new PIXI.Sprite(frames[i]);
+    if (!frames || !frames[i]) return null;
+    return frames[i];
   }
   centerSprites() {
     if (this.notLoadedText) {
